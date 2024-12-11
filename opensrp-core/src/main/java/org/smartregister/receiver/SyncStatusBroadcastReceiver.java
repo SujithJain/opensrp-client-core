@@ -1,9 +1,11 @@
 package org.smartregister.receiver;
 
+import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 
 import org.joda.time.DateTime;
@@ -36,14 +38,22 @@ public class SyncStatusBroadcastReceiver extends BroadcastReceiver {
         syncStatusListeners = new ArrayList<>();
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     public static void init(Context context) {
         if (singleton != null) {
             destroy(context);
         }
 
         singleton = new SyncStatusBroadcastReceiver();
-        context.registerReceiver(singleton,
-                new IntentFilter(SyncStatusBroadcastReceiver.ACTION_SYNC_STATUS));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(singleton,
+                    new IntentFilter(SyncStatusBroadcastReceiver.ACTION_SYNC_STATUS),
+                    Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            context.registerReceiver(
+                    singleton, new IntentFilter(SyncStatusBroadcastReceiver.ACTION_SYNC_STATUS)
+            );
+        }
     }
 
     public static void destroy(Context context) {
